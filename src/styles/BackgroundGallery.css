@@ -22,11 +22,16 @@
   border: 3px solid transparent;
   transition: all 0.3s ease;
   background: #f5f5f5;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.gallery-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+/* Hover solo en dispositivos con cursor real (desktop). Evita el bug
+   de iOS donde el primer toque activa hover y el segundo el click. */
+@media (hover: hover) and (pointer: fine) {
+  .gallery-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
 }
 
 .gallery-item.selected {
@@ -60,10 +65,12 @@
   border: 2px dashed #ddd;
 }
 
-.item-add:hover {
-  background: #f5f5f5;
-  border-color: #667eea;
-  color: #667eea;
+@media (hover: hover) and (pointer: fine) {
+  .item-add:hover {
+    background: #f5f5f5;
+    border-color: #667eea;
+    color: #667eea;
+  }
 }
 
 .item-empty p,
@@ -77,21 +84,31 @@
   position: absolute;
   top: 4px;
   right: 4px;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(220, 53, 69, 0.92);
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  padding: 4px 8px;
+  border-radius: 999px;
+  width: 26px;
+  height: 26px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  color: white;
-}
-
-.gallery-item:hover .delete-btn {
   opacity: 1;
+  color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  -webkit-tap-highlight-color: transparent;
+  z-index: 2;
+  padding: 0;
 }
 
-.delete-btn:hover {
-  background: rgba(0, 0, 0, 0.8);
+.delete-btn:active {
+  background: rgba(180, 35, 50, 1);
+  transform: scale(0.92);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .delete-btn:hover {
+    background: rgba(180, 35, 50, 1);
+  }
 }

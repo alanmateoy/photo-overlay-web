@@ -3,26 +3,25 @@ import './App.css';
 import PhotoUpload from './components/PhotoUpload';
 import BackgroundGallery from './components/BackgroundGallery';
 import ImageEditor from './components/ImageEditor';
-import LoginScreen from './components/LoginScreen';
-import { isAuthenticated } from './utils/auth';
 import { loadDefaultBackgrounds } from './utils/defaultBackgrounds';
 import { shareImage, saveImage } from './utils/canvasExport';
 
 function App() {
-  const [authed, setAuthed] = useState<boolean>(() => isAuthenticated());
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [backgrounds, setBackgrounds] = useState<string[]>([]);
   const [selectedBg, setSelectedBg] = useState<string | null>(null);
   const [transparency, setTransparency] = useState(0.4);
   const [defaultsLoaded, setDefaultsLoaded] = useState(false);
+  // Set de URIs de fondos predefinidos (no se pueden eliminar)
+  const [defaultUris, setDefaultUris] = useState<Set<string>>(() => new Set());
   const [busy, setBusy] = useState<null | 'share' | 'save'>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const feedbackTimer = useRef<number | null>(null);
 
-  // Cargar los fondos predefinidos al autenticarse
+  // Cargar los fondos predefinidos al iniciar la app
   useEffect(() => {
-    if (!authed || defaultsLoaded) return;
+    if (defaultsLoaded) return;
 
     let cancelled = false;
     loadDefaultBackgrounds().then((defaults) => {
@@ -35,6 +34,7 @@ function App() {
         }
         return merged;
       });
+      setDefaultUris(new Set(defaults));
       setSelectedBg((current) => current ?? defaults[0] ?? null);
       setDefaultsLoaded(true);
     });
@@ -42,7 +42,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [authed, defaultsLoaded]);
+  }, [defaultsLoaded]);
 
   const showFeedback = useCallback((msg: string) => {
     setFeedback(msg);
@@ -64,9 +64,12 @@ function App() {
   }, []);
 
   const handleRemoveBackground = useCallback((uri: string) => {
+    // Los fondos predefinidos NO se pueden eliminar (defensa adicional
+    // a la lógica de la galería que ya oculta el botón).
+    if (defaultUris.has(uri)) return;
     setBackgrounds((prev) => prev.filter((bg) => bg !== uri));
     setSelectedBg((current) => (current === uri ? null : current));
-  }, []);
+  }, [defaultUris]);
 
   const handleClear = useCallback(() => {
     setPhotoUri(null);
@@ -105,11 +108,6 @@ function App() {
     }
   }, [busy, showFeedback]);
 
-  // Pantalla de login bloqueando todo lo demás
-  if (!authed) {
-    return <LoginScreen onLogin={() => setAuthed(true)} />;
-  }
-
   return (
     <div className="app">
       <header className="header">
@@ -130,6 +128,7 @@ function App() {
                 onSelect={setSelectedBg}
                 onAdd={handleAddBackground}
                 onRemove={handleRemoveBackground}
+                defaultBackgrounds={defaultUris}
               />
             </section>
           </div>
@@ -152,6 +151,7 @@ function App() {
                   onSelect={setSelectedBg}
                   onAdd={handleAddBackground}
                   onRemove={handleRemoveBackground}
+                  defaultBackgrounds={defaultUris}
                   compact
                 />
               </div>

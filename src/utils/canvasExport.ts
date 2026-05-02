@@ -59,6 +59,10 @@ export function canShareFiles(file: File): boolean {
  * Comparte la foto editada vía la hoja nativa de iOS/Android.
  * Ahí el usuario puede elegir WhatsApp, Mensajes, "Guardar imagen", etc.
  *
+ * IMPORTANTE: NO incluimos `title` ni `text` en navigator.share() para
+ * que WhatsApp NO agregue ningún mensaje automático junto con la imagen.
+ * Solo se envía el archivo limpio.
+ *
  * Devuelve true si se compartió, false si fue cancelado o no soportado.
  */
 export async function shareImage(canvas: HTMLCanvasElement): Promise<boolean> {
@@ -66,10 +70,8 @@ export async function shareImage(canvas: HTMLCanvasElement): Promise<boolean> {
 
   if (canShareFiles(file)) {
     try {
-      await navigator.share({
-        files: [file],
-        title: 'Foto editada',
-      });
+      // Solo `files`, sin title/text → WhatsApp recibe imagen sin mensaje
+      await navigator.share({ files: [file] });
       return true;
     } catch (err) {
       // AbortError = el usuario canceló. No es un error real.
@@ -89,6 +91,8 @@ export async function shareImage(canvas: HTMLCanvasElement): Promise<boolean> {
  * Descarga la foto al dispositivo en máxima calidad.
  * En iOS, abre la hoja de compartir con opción "Guardar imagen".
  * En escritorio y Android, descarga directamente como archivo.
+ *
+ * Igual que shareImage, sin title/text para no agregar mensajes.
  */
 export async function saveImage(canvas: HTMLCanvasElement): Promise<void> {
   const file = await canvasToFile(canvas, 'image/jpeg');
@@ -97,10 +101,7 @@ export async function saveImage(canvas: HTMLCanvasElement): Promise<void> {
   // y que vaya directo a la galería de Fotos.
   if (canShareFiles(file)) {
     try {
-      await navigator.share({
-        files: [file],
-        title: 'Guardar foto',
-      });
+      await navigator.share({ files: [file] });
       return;
     } catch (err) {
       // Si cancela o falla, caemos al download tradicional

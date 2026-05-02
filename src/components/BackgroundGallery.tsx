@@ -8,6 +8,8 @@ interface BackgroundGalleryProps {
   onSelect: (uri: string | null) => void;
   onAdd: (uri: string) => void;
   onRemove: (uri: string) => void;
+  /** Set de URIs de fondos predefinidos (no se pueden eliminar) */
+  defaultBackgrounds?: Set<string>;
   compact?: boolean;
 }
 
@@ -17,6 +19,7 @@ export default function BackgroundGallery({
   onSelect,
   onAdd,
   onRemove,
+  defaultBackgrounds,
   compact = false,
 }: BackgroundGalleryProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -56,25 +59,34 @@ export default function BackgroundGallery({
         </div>
 
         {/* Fondos cargados */}
-        {backgrounds.map((bg, idx) => (
-          <div
-            key={`${bg}-${idx}`}
-            className={`gallery-item ${selectedBackground === bg ? 'selected' : ''}`}
-            onClick={() => onSelect(bg)}
-          >
-            <img src={bg} alt={`Fondo ${idx + 1}`} />
-            <button
-              className="delete-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemove(bg);
-              }}
-              title="Eliminar fondo"
+        {backgrounds.map((bg, idx) => {
+          const isDefault = defaultBackgrounds?.has(bg) ?? false;
+          return (
+            <div
+              key={`${bg}-${idx}`}
+              className={`gallery-item ${selectedBackground === bg ? 'selected' : ''}`}
+              onClick={() => onSelect(bg)}
             >
-              🗑️
-            </button>
-          </div>
-        ))}
+              <img src={bg} alt={`Fondo ${idx + 1}`} />
+              {!isDefault && (
+                <button
+                  className="delete-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove(bg);
+                  }}
+                  onTouchEnd={(e) => {
+                    e.stopPropagation();
+                  }}
+                  title="Eliminar fondo"
+                  aria-label="Eliminar fondo"
+                >
+                  🗑️
+                </button>
+              )}
+            </div>
+          );
+        })}
 
         {/* Botón agregar */}
         <div

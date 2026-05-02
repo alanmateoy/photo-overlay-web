@@ -2,7 +2,6 @@ import { removeWhiteBackground } from './imageProcessing';
 
 // Rutas de los fondos predefinidos. Vienen de /public/fondos/.
 const DEFAULT_BACKGROUND_PATHS = [
-  '/fondos/1_upscaled.png',
   '/fondos/2_upscaled.png',
   '/fondos/3_upscaled.png',
   '/fondos/4_upscaled.png',
